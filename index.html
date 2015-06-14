@@ -1,0 +1,1121 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>reveal.js - The HTML Presentation Framework</title>
+
+		<meta name="description" content="Behavior-Driven Development in Plain Java">
+		<meta name="author" content="Jan Schäfer">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/white.css" id="theme">
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/github-gist.css">
+
+		<link rel="stylesheet" href="css/fonts.css">
+		<link rel="stylesheet" href="css/custom.css">
+
+        <link rel="stylesheet" href="css/gh-fork-ribbon.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section class="title">
+					<h1>Behavior-Driven Development in <br /><code>Plain_Java()</code></h1>
+                      <h2 style="margin-top:60px; margin-bottom: 40px">Dr. Jan Schäfer</h2>
+                      <h3>Big Techday 8<br />June 12, 2015</h3>
+                    <a href="http://tngtech.com"><img  style="margin:50px;" src="img/tng.svg" /></a>
+				</section>
+
+                <section>
+                  <section>
+                    <h1>Why BDD?</h1>
+                  </section>
+                  <section>
+                    <h2>Test-Driven Development</h2>
+                    <pre><code data-trim style="font-size:14px; line-height:1.2">
+@Test
+@Transactional
+public void shouldInsertPetIntoDatabaseAndGenerateId() {
+    Owner owner6 = this.clinicService.findOwnerById(6);
+    int found = owner6.getPets().size();
+
+    Pet pet = new Pet();
+    pet.setName("bowser");
+    Collection&lt;PetType&gt; types = this.clinicService.findPetTypes();
+    pet.setType(EntityUtils.getById(types, PetType.class, 2));
+    pet.setBirthDate(new DateTime());
+    owner6.addPet(pet);
+    assertThat(owner6.getPets().size()).isEqualTo(found + 1);
+
+    this.clinicService.savePet(pet);
+    this.clinicService.saveOwner(owner6);
+
+    owner6 = this.clinicService.findOwnerById(6);
+    assertThat(owner6.getPets().size()).isEqualTo(found + 1);
+    // checks that id has been generated
+    assertThat(pet.getId()).isNotNull();
+}
+  </code></pre>
+<small>Example is from <a href="https://github.com/spring-projects/spring-petclinic">github.com/spring-projects/spring-petclinic</a></small>
+
+
+<!--                    <img src="img/tdd.svg"> -->
+                  </section>
+                  <section>
+                    <h2>Typical Tests</h2>
+          <ul>
+           <li>Often hard to understand</li>
+           <li>Often contain too many technical details</li>
+           <li>Point of the test often hard to grasp</li>
+           <li>Often contain code duplication</li>
+           <li><b>Can only be read by developers</b></li>
+          </ul>
+
+                  </section>
+
+                  <section>
+                    <h2>Behavior Driven Development</h2>
+                      <ul>
+                        <li>Behavior is specified in a <b>semi-formal</b> format using the <b>domain language</b> of the product</li>
+                        <li>Behavioral specifications are <b>exectuable</b> like tests</li>
+                        <li>Developers and business analysts <b>collaborate</b> when defining the behavior</li>
+                      </ul>
+                  </section>
+
+                  <section>
+                    <h2>TDD</h2>
+                    <h3>Are we building the product right?</h3>
+                    <h2>BDD</h2>
+                    <h3>Are we building the right product?</h3>
+
+<!--
+                  <section>
+                    <h2>Example</h2>
+                    <pre><code class="gherkin" data-trim>
+Scenario: new pets can be assigned to existing owners
+
+  Given an existing pet owner
+    And a new pet
+   When the pet is assigned to the owner
+   Then the pet exists in the system
+    And the pet belongs to the owner
+ </code></pre>
+
+-->
+                  </section>
+<!--
+                  <section data-transition="fade-in fade-out">
+                    <h2>Behavior-Driven Development</h2>
+                    <img src="img/bddraw.svg">
+                  </section>
+                  <section data-transition="fade-in slide-out">
+                    <h2>Behavior-Driven Development</h2>
+                    <img src="img/bddkommunikation.svg">
+                  </section>
+-->
+                </section>
+
+                <section>
+                  <section>
+                    <h1>BDD in Java</h1>
+                  </section>
+<!--
+        <section>
+          <div class="position: relative">
+            <pre class="plain"><code style="font-size:9px; line-height:1.2" data-trim>
+@Test
+public void givenACustomerWhenOrderingABookThenTheBookIsOrderedAndAnEmailIsSent() throws Exception {
+    CustomerBuilder customerBuilder = builder().customerBuilder();
+    CustomerId customerId = customerBuilder.build().getCustomerId();
+
+    Book book = builder().bookBuilder().build();
+
+    int orderId = orderBuilder.getBuilder().get().orderId();
+    Date date = new Date();
+    OrderRequestBuilder requestBuilder = orderRequestRequestBuilder()
+        .withCallingDateTime( date )
+        .withOrderId( orderId )
+        .withChannelID( WEB_CHANNEL );
+
+    SoapCall call = createSoapCall( customerBuilder, WEB_CLIENT, WEB_CHANNEL, null, requestBuilder,
+        RequestType.ORDER, null );
+    call.prepareProperties().setProperty( "customerId", customerId );
+    call.doSoapCall();
+
+    waitForAssertions( orderIsInStateActive( customerId, orderId, WEB_CHANNEL ) );
+    OrderOperationResponseMatcher orderOperationResponseMatcher =
+        OrderOperationResponseMatcher.create( getDbConnection() )
+        .withClient( WEB_CLIENT )
+        .withTransactionId( orderBuilder.getTransactionId() )
+        .withCallingDateTime( date )
+        .withSuccess( true )
+        .withCustomerId( customerId )
+        .withOrderId( orderId  )
+        .withOrderStatus( ACTIVE );
+
+    waitForAssertions( responseSent( requestBuilder.getOrderId(), WEB_CLIENT, 1,
+        false, ".*" + RESPONSE_URN + getVersionInfix() + "orderResponse</To>.*", ".*"
+        + RESPONSE_URN + getVersion() + "orderBookResponse</Action>.*" ) );
+    assertThatEmailIsSent( customerId );
+}
+        </code></pre>
+        <div class="fragment" style="position: absolute; top:20px; bottom:0;margin:auto; background-color: rgba(255,255,255,0.9); width:100%; padding-top: 20px">
+          <h2>Standard JUnit Tests</h2>
+          <ul>
+           <li>Often hard to understand</li>
+           <li>Often contain too many technical details</li>
+           <li>Point of the test often hard to grasp</li>
+           <li>Often contain code duplication</li>
+           <li>Can only be read by developers</li>
+          </ul>
+        </div>
+         </div>
+        </section>
+
+        <section>
+          <h2>Behavior-Driven Development</h2>
+          <ul>
+            <li>Tests are written as Scenarios</li>
+            <li>Scenarios are written in a common domain language understandable by business owners</li>
+            <li>Typically in the Given-When-Then format</li>
+          </ul>
+        </section>
+-->
+        <section>
+          <h2>
+          <img class="plain" src="img/cucumber.png" />
+          </h2>
+        </section>
+
+        <section>
+          <h2>Feature Files (Gherkin)</h2>
+ordering.feature
+          <pre><code class="gherkin" data-trim>
+Feature: Ordering
+
+  Scenario: Customers can order books
+
+    Given a customer
+      And a book
+      And 3 items of the book are on stock
+     When the customer orders the book
+     Then a corresponding order for the customer exists
+        </code></pre>
+        </section>
+        <section>
+          <h2>Step Implementation (Java)</h2>
+          <pre style="font-size:50%"><code data-trim>
+public class CustomerStepdefs {
+    @Given("a customer")
+    public void aCustomer() { ... }
+
+    @Given("a book")
+    public void aBook() { ... }
+
+    @Given("(\\d+) items of the book are on stock")
+    public void nItemsOfTheBookAreOnStock(int nItems) { ... }
+
+    @When("the customer orders the book")
+    public void theCustomerOrdersTheBook() { ... }
+
+    @Then("a corresponding order for the customer exists")
+    public void aCorrespondingOrderForTheCustomerExists() { ... }
+}
+        </code></pre>
+        </section>
+<!--
+        <section>
+          <blockquote cite="https://en.wikiquote.org/wiki/Jamie_Zawinski">
+Some people, when confronted with a problem, think "I know, I'll use regular expressions." Now they have two problems.
+          </blockquote>
+<div style="text-align:right"><a href="https://en.wikiquote.org/wiki/Jamie_Zawinski">Jamie Zawinski</a></div>
+        </section>
+-->
+        <section>
+          <h2>Problems</h2>
+          <h3>High maintainance cost</h3>
+          <ul>
+            <li>Feature files and Code must be kept in sync</li>
+            <li>No Programming Language Power in feature files</li>
+            <li>Limited IDE support (e.g. no refactoring support)</li>
+          </ul>
+        </section>
+        <section>
+          <h2>Observations in Practice</h2>
+          <ul>
+            <li>Low developer acceptance due to higher overhead</li>
+            <li>Non-developers rarely write feature files</li>
+            <li>Maintaince of feature files has to be done by developers anyway</li>
+          </ul>
+        </section>
+        <section>
+            <h2>Other BDD frameworks?</h2>
+            <ul>
+              <li>JBehave: Plain Text + Java (like Cucumber)</li>
+              <li>Concordion: HTML + Java</li>
+              <li>Fitness: Wiki + Java</li>
+              <li>Spock: Groovy</li>
+              <li>ScalaTest: Scala</li>
+              <li>Jnario: Xtend</li>
+            </ul>
+        </section>
+
+        <section data-background="img/wantedposter.jpg" data-background-size="500px">
+          &nbsp;
+        </section>
+
+        <section>
+          <h2>Stackoverflow to the rescue!</h2>
+        </section>
+
+        <section class="fade-in">
+          <div style="position: relative; top:0px;" class="img">
+            <img width="580px" src="img/stackoverflow.png" />
+            <div style="z-index: 100; position: absolute; left:220px; top:690px; font-size:10px !important">
+              <a href="http://stackoverflow.com/questions/16036120/behavior-driven-development-for-java-what-framework-to-use/25221414#25221414">Source: http://stackoverflow.com/questions/16036120/
+              </a>, <a href="http://stackoverflow.com/users/1371775/sody">
+              Author: http://stackoverflow.com/users/1371775/sody
+            </a>
+            </div>
+
+            <div class="fragment">
+              <div style="background-color: red; position:relative; top: -150px; left: 180px;width: 600px;height: 50px; opacity:0.3;" />
+            </div>
+          </div>
+
+        </section>
+      </section>
+
+
+      <section>
+        <section>
+          <h1>JGiven</h1>
+        </section>
+
+        <section>
+          <h2>Scenarios in JGiven</h2>
+          <pre><code data-trim>
+import org.junit.Test;
+import com.tngtech.jgiven.junit.SimpleScenarioTest;
+
+public class OrderTest extends SimpleScenarioTest&lt;StepDefs&gt; {
+
+    @Test
+    public void customers_can_order_books() {
+
+        given().a_customer()
+            .and().a_book_on_stock();
+
+        when().the_customer_orders_the_book();
+
+        then().a_corresponding_order_exists();
+    }
+}
+      </code></pre>
+        </section>
+        <section>
+          <h2>Some Facts</h2>
+          <ul>
+            <li>Scenarios are written in a <b>domain-specific, fluent API</b></li>
+            <li>Works with <b>JUnit</b> and <b>TestNG</b></li>
+            <li>Minimizes annotation overhead by deriving most information directly from the source code</li>
+          </ul>
+        </section>
+
+        <section>
+            <h4 class="center">Ok, but what about non-developers?</h4>
+        </section>
+        <section>
+        <h2>Reports</h2>
+        <ul>
+          <li>Plain Text</li>
+          <li>Static HTML</li>
+          <li>HTML5 App</li>
+          <li>AsciiDoc (Alpha)</li>
+        </ul>
+        </section>
+        <section>
+          <h2>Plain Text</h2>
+          <code><pre>Test Class: com.tngtech.jgiven.example.bookstore.OrderTest
+
+ Scenario: customers can order books
+
+   Given a customer
+     And a book on stock
+    When the customer orders the book
+    Then a corresponding order exists for the customer</pre></code>
+
+        </section>
+        <section>
+          <h2>HTML5 App</h2>
+          <ul>
+            <li><a href="http://jgiven.org/jgiven-report/html5/">JGiven's own report (jgiven.org/jgiven-report/html5/)</a></li>
+            <li><a target="_blank" href="examplereport/index.html">Local Example</a></li>
+          </ul>
+        </section>
+        <section style="text-align:center">
+          <h2>Classical BDD vs. JGiven</h2>
+            <div>
+              <h4>&nbsp;</h4>
+              <h3>Classical BDD</h3>
+              <h4>Readable Text &lt;-&gt; Code</h4>
+            </div>
+            <div>
+              <h4>&nbsp;</h4>
+              <h3>JGiven</h3>
+              <h4>Readable Code -&gt; Readable Report</h4>
+            </div>
+        </section>
+
+        <section>
+          <h2>Experience from Practice</h2>
+          <ul>
+            <li>Experience from over 1 year and in a large Java project</li>
+            <li>Over 1300 scenarios have been written so far</li>
+            <li>JGiven greatly improves readability and code reuse</li>
+            <li><b>Reduces</b> maintance costs of automated tests (no hard numbers though)</li>
+            <li>Widely accepted by developers</li>
+            <li>Easy to learn by new developers</li>
+            <li>Reports are read by product owner and business analysts</li>
+          </ul>
+<!--
+            <li>1. October 2013: First usage in project</li>
+            <li>30. March 2014: Published as open-source on GitHub</li>
+            <li>8. September 2014: Article in Java aktuell magazin</li>
+            <li>10. December 2014: v0.6.0 with new HTML5 Report</li>
+            <li>10. February 2015: v0.7.0</li>
+-->
+          </ul>
+        </section>
+
+
+
+
+      </section>
+      <section>
+        <section>
+          <h1>Getting Started</h1>
+        </section>
+
+        <section>
+          <h2>Add JGiven Dependency</h2>
+          <ul>
+            <li>com.tngtech.jgiven:jgiven-junit:0.7.2</li>
+            <li>Licence: Apache License v2.0</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Extend ScenarioTest*</h2>
+          <pre><code data-trim>
+import com.tngtech.jgiven.(junit|testng).ScenarioTest;
+
+public class SomeScenarioTest extends ScenarioTest&lt;...&gt; {
+
+}</code></pre>
+*Or SimpleScenarioTest
+        </section>
+
+        <section>
+          <h2>Add Stage Types</h2>
+          <pre><code data-trim>
+import com.tngtech.jgiven.junit.ScenarioTest;
+
+public class SomeScenarioTest
+    extends ScenarioTest&lt;MyGivenStage, MyWhenStage, MyThenStage&gt; {
+
+}</code></pre>
+        </section>
+
+        <section>
+          <h2>Add Test Methods</h2>
+          <pre><code data-trim>
+import org.junit.Test;
+import com.tngtech.jgiven.junit.ScenarioTest;
+
+public class SomeScenarioTest
+    extends ScenarioTest&lt;MyGivenStage, MyWhenStage, MyThenStage&gt; {
+
+    @Test
+    public void my_first_scenario() { ... }
+
+}</code></pre>
+
+        </section>
+        <section>
+          <h2>Write step methods</h2>
+          <pre><code class="stretch" data-trim>
+import org.junit.Test;
+import com.tngtech.jgiven.junit.ScenarioTest;
+
+public class SomeScenarioTest
+    extends ScenarioTest&lt;MyGivenStage, MyWhenStage, MyThenStage&gt; {
+
+    @Test
+    public void my_first_scenario() {
+        given().some_initial_state();
+        when().some_action();
+        then().the_result_is_correct();
+    }
+}
+          </code></pre>
+        </section>
+        <section>
+          <h2>Write Stage Classes</h2>
+          <pre><code data-trim>
+import com.tngtech.jgiven.Stage;
+
+public class MyGivenStage extends Stage&lt;MyGivenStage&gt; {
+
+    int state;
+
+    public MyGivenStage some_initial_state() {
+        state = 42;
+        return this;
+    }
+}</code></pre>
+        </section>
+
+      </section>
+      <section>
+        <section>
+          <h1>Stage Classes</h1>
+        </section>
+
+        <section>
+          <h2>General</h2>
+          <ul>
+            <li>JGiven scenarios are built from <b>stage classes</b></li>
+            <li>Stage classes provide <b>modularity</b> and <b>reuse</b></li>
+            <li>Stage classes are a unique feature of JGiven, not present in any other BDD framework</li>
+            <li>Typically a stage class is used for either a Given, When, or Then steps of a scenario</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>State Transfer</h2>
+          <img width="700" src="img/stages.svg" />
+        </section>
+
+        <section>
+          <h2>State Transfer</h2>
+          <ul>
+          <li>Fields can be annotated with <b>@ScenarioState</b></li>
+          <li>Values are written and read between stages</li>
+          <li><b>@ProvidedScenarioState</b>, <b>@ExpectedScenarioState</b> as alternative</li>
+          </ul>
+        </section>
+        <section>
+          <pre><code data-trim  style="min-height:450px">
+public class MyGivenStage extends Stage&lt;MyGivenStage&gt; {
+   @ProvidedScenarioState
+   int state;
+
+   public MyGivenStage some_initial_state() {
+      state = 42;
+      return self();
+   }
+}
+
+public class MyWhenStage extends Stage&lt;MyWhenStage&gt; {
+   @ExpectedScenarioState
+   int state;
+
+   @ProvidedScenarioState
+   int result;
+
+   public MyWhenStage some_action() {
+       result = state * state;
+   }
+}
+          </code></pre>
+        </section>
+
+
+
+        </section>
+<section>
+        <section>
+          <h1>Data-Driven Scenarios</h1>
+        </section>
+
+       <section>
+          <h2>Parameterized Step Methods</h2>
+          <pre class="fragment fade-in"><code>
+      given().a_customer_with_name( "John" );
+          </code></pre>
+          <div class="fragment fade-in">
+          <h4>Report</h4>
+          <pre><code>
+      Given a customer with name John
+          </code></pre>
+          </div>
+       </section>
+
+        <section>
+          <h2>Within a scentence?</h2>
+          <pre><code>
+      Given there are 5 coffees left
+          </code></pre>
+          <h4 class="fragment fade-in">$ to the rescue!</h4>
+          <pre class="fragment fade-in"><code>
+      given().there_are_$_coffees_left( ncoffees );
+          </code></pre>
+        </section>
+
+
+        <section>
+          <h2>Parameterized Scenarios</h2>
+          <pre><code>@Test
+@DataProvider({
+   "1, 0",
+   "3, 2",
+   "5, 4"})
+public void the_stock_is_reduced_when_a_book_is_ordered( int initial,
+                                                         int left ) {
+   given().a_customer()
+       .and().a_book()
+       .with().$_items_on_stock( initial );
+
+   when().the_customer_orders_the_book();
+
+   then().there_are_$_items_left_on_stock( left );
+}</code></pre>
+<small>
+Using TNG's DataProviderRunner (<a href="https://github.com/TNG/junit-dataprovider">github.com/TNG/junit-dataprovider</a>).<br> JUnit's Parameterized Runner and Theories are also supported.
+</small>
+        </section>
+        <section>
+          <h2>Text Report</h2>
+<code><pre>
+ Scenario: the stock is reduced when a book is ordered
+
+   Given a customer
+     And a book
+    With &lt;initial&gt; items on stock
+    When the customer orders the book
+    Then there are &lt;left&gt; items left on stock
+
+  Cases:
+
+    | # | initial | left | Status  |
+    +---+---------+------+---------+
+    | 1 |       1 |    0 | Success |
+    | 2 |       3 |    2 | Success |
+    | 3 |       5 |    4 | Success |</pre></code>
+<a target="_blank" href="examplereport/index.html#/scenario/com.tngtech.jgiven.example.bookstore.OrderTest/the_stock_is_reduced_when_a_book_is_ordered">HTML Report</a>
+</section>
+
+<section>
+   <h2>Derived Parameters</h2>
+          <pre><code>@Test
+@DataProvider({"1", "3", "5"})
+public void the_stock_is_reduced_when_a_book_is_ordered( int initial ) {
+
+   given().a_customer()
+       .and().a_book()
+       .with().$_items_on_stock( initial );
+
+   when().the_customer_orders_the_book();
+
+   then().there_are_$_items_left_on_stock( initial - 1 );
+
+}</code></pre>
+
+</section>
+
+        <section>
+   <h2>Derived Parameters</h2>
+          <h3>Text Report</h3>
+<code><pre>
+ Scenario: the stock is reduced when a book is ordered
+
+   Given a customer
+     And a book
+    With &lt;initial&gt; items on stock
+    When the customer orders the book
+    Then there are &lt;numberOfItems&gt; items left on stock
+
+  Cases:
+
+    | # | initial | numberOfItems | Status  |
+    +---+---------+---------------+---------+
+    | 1 |       1 |             0 | Success |
+    | 2 |       3 |             2 | Success |
+    | 3 |       5 |             4 | Success |</pre></code>
+<a target="_blank" href="examplereport/index.html#/scenario/com.tngtech.jgiven.example.bookstore.OrderTest/the_stock_is_reduced_when_a_book_is_ordered_2">HTML Report</a>
+</section>
+
+<section>
+<h2>Different Cases</h2>
+<pre><code>@Test
+@DataProvider({ "3, 2, true",
+                "0, 0, false" })
+public void the_stock_is_only_reduced_when_possible(
+         int initial, int left, boolean orderExists) {
+
+    given().a_customer()
+        .and().a_book()
+        .with().$_items_on_stock( initial );
+
+    when().the_customer_orders_the_book();
+
+    if ( orderExists ) {
+        then().a_corresponding_order_exists_for_the_customer();
+    } else {
+        then().no_corresponding_order_exists_for_the_customer();
+    }
+}</code></pre>
+</section>
+<section>
+<h2>Different Cases</h2>
+<h3>Text Report</h3>
+<code><pre>Scenario: the stock is only reduced when possible
+
+  Case 1: initial = 3, left = 2, orderExists = true
+   Given a customer
+     And a book
+    With 3 items on stock
+    When the customer orders the book
+    Then there are 2 items left on stock
+     And a corresponding order exists for the customer
+
+  Case 2: initial = 0, left = 0, orderExists = false
+   Given a customer
+     And a book
+    With 0 items on stock
+    When the customer orders the book
+    Then there are 0 items left on stock
+     And no corresponding order exists for the customer</pre></code>
+<a target="_blank" href="examplereport/index.html#/scenario/com.tngtech.jgiven.example.bookstore.OrderTest/the_stock_is_only_reduced_when_possible">HTML Report</a>
+</section>
+
+<section>
+<h2>Different Cases</h2>
+<h3>Notes</h3>
+<ul>
+<li>Even if possible: Try to avoid structural different scenario cases</li>
+<li>Better extract a method and create two scenarios or use parameter formatting</li>
+</ul>
+</section>
+
+<!--
+        <section>
+          <h2>Plain Text</h2>
+          <pre>
+
+  Scenario: buy a coffee
+
+    Given there are 5 coffees left in the machine
+      and the machine is on
+      and the coffee costs 2 dollar
+
+     When I deposit 1 dollar
+      and I press the coffee button
+
+     Then I should not be served a coffee
+      and an error message should be displayed
+          </pre>
+        </section>
+-->
+      </section>
+
+     <section>
+        <section>
+          <h1>Additional Features</h1>
+        </section>
+
+        <section>
+          <h2>Parameter Formatting</h2>
+          <ul>
+            <li>Default: toString()
+            <li>@Format( MyCustomFormatter.class )
+            <li>@Formatf( " -- %s -- " )
+            <li>@MyCustomFormatAnnotation
+          </ul>
+        </section>
+
+        <section>
+          <h2>Example</h2>
+          <h3>@OnOff</h3>
+          <code><pre>@Format( value = BooleanFormatter.class, args = { "on", "off" } )
+@Retention( RetentionPolicy.RUNTIME )
+@interface OnOff {}</pre></code>
+          <div class="fragment">
+          <h4>Apply to parameter</h4>
+          <code><pre>public SELF the_machine_is_$( @OnOff boolean onOrOff ) { ... }</pre></code>
+          </div>
+          <div class="fragment">
+          <h4>Use step</h4>
+<code><pre>given().the_machine_is_$( false );</pre></code>
+          </div>
+          <div class="fragment">
+          <h4>Report</h4>
+<code><pre>Given the machine is off</pre></code>
+          </div>
+        </section>
+
+        <section>
+          <h2>Tables as Parameter</h2>
+          <ul>
+            <li><a href="http://jgiven.org/javadoc/com/tngtech/jgiven/annotation/Table.html">@Table</a> to mark step parameter to be tables</li>
+            <li>Must be the last parameter</li>
+            <li>Must be an Iterable of Iterable, an Iterable of POJOs, or a single POJO</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Tables as Parameter</h2>
+          <h3>Using Arrays</h3>
+<pre><code>SELF the_following_books_are_on_stock( @Table String[][] stockTable ) {
+   ...
+}</code></pre>
+<ul><li>
+        First row is the table header
+      </li></ul>
+        </section>
+
+        <section>
+          <h2>Tables as Parameters</h2>
+          <h3>Using Arrays</h3>
+          <code><pre>@Test
+public void ordering_a_book_reduces_the_stock() {
+
+    given().the_following_books_on_stock(new String[][]{
+        {"id", "name", "author", "stock"},
+        {"1", "The Hitchhiker's Guide to the Galaxy", "Douglas Adams", "5"},
+        {"2", "Lord of the Rings", "John Tolkien", "3"},
+    });
+
+    when().a_customer_orders_book("1");
+
+    then().the_stock_looks_as_follows(new String[][]{
+        {"id", "name", "author", "stock"},
+        {"1", "The Hitchhiker's Guide to the Galaxy", "Douglas Adams", "4"},
+        {"2", "Lord of the Rings", "John Tolkien", "3"},
+    });
+
+}</pre></code>
+        </section>
+
+        <section>
+          <h2>Tables as Parameters</h2>
+          <h3>Text Report</h3>
+<code><pre>Scenario: ordering a book reduces the stock
+
+   Given the following books on stock
+
+     | id | name                                 | author        | stock |
+     +----+--------------------------------------+---------------+-------+
+     |  1 | The Hitchhiker's Guide to the Galaxy | Douglas Adams |     5 |
+     |  2 | Lord of the Rings                    | John Tolkien  |     3 |
+
+    When a customer orders book 1
+    Then the stock looks as follows
+
+     | id | name                                 | author        | stock |
+     +----+--------------------------------------+---------------+-------+
+     |  1 | The Hitchhiker's Guide to the Galaxy | Douglas Adams |     4 |
+     |  2 | Lord of the Rings                    | John Tolkien  |     3 |</pre></code>
+
+<a target="_blank" href="examplereport/index.html#/scenario/com.tngtech.jgiven.example.bookstore.OrderTest/ordering_a_book_reduces_the_stock">HTML Report</a>
+        </section>
+
+<section>
+  <h2>Tables as Parameters</h2>
+  <h3>List of POJOs</h3>
+  <ul>
+    <li>Field names: header</li>
+    <li>Field values: data</li>
+  </ul>
+  <pre><code>SELF the_following_books_are_on_stock( @Table List&lt;BookOnStock&gt; books) {
+   ...
+}</code></pre>
+</section>
+
+<section>
+  <h2>Tables as Parameters</h2>
+  <h3>Single POJO</h3>
+  <pre><code>SELF the_following_book(
+      @Table(includeFields = {"name", "author", "priceInEurCents"},
+             header = VERTICAL) Book book) {
+   ...
+}
+</code></pre>
+<h4>Text Report</h4>
+<pre><code>
+   Given the following book
+
+     | name            | Lord of the Rings |
+     | author          | John Tolkien      |
+     | priceInEurCents | 0                 |
+</code></pre>
+<a target="_blank" href="examplereport/index.html#/scenario/com.tngtech.jgiven.example.bookstore.OrderTest/single_POJOs_as_Table">HTML Report</a>
+</section>
+
+	<section>
+		<h2>@BeforeScenario and @AfterScenario</h2>
+          <pre><code>
+     public class GivenSteps extends Stage&lt;GivenSteps&gt; {
+	@ProvidedScenarioState
+	File temporaryFolder;
+
+	@BeforeScenario
+	void setupTemporaryFolder() {
+		    temporaryFolder = ...
+	}
+
+	@AfterScenario
+	void deleteTemporaryFolder() {
+	    temporaryFolder.delete();
+	}
+     }
+          </code></pre>
+	</section>
+        <section>
+		<h2>Scenario Rules</h2>
+          <pre><code data-trim>
+public class TemporaryFolderRule {
+    File temporaryFolder;
+
+    public void before() {
+        temporaryFolder = ...
+    }
+
+    public void after() {
+        temporaryFolder.delete();
+    }
+}
+
+public class GivenSteps extends Stage&lt;GivenSteps&gt; {
+    @ScenarioRule
+    TemporaryFolderRule rule = new TemporaryFolderRule();
+}
+          </code></pre>
+
+        </section>
+
+         <section>
+            <h2>@AfterStage, @BeforeStage</h2>
+          <pre><code class="stretch" data-trim>
+public class GivenCustomer extends Stage&lt;GivenSteps&gt; {
+    CustomerBuilder builder;
+
+    @ProvidedScenarioState
+    Customer customer;
+
+    public void a_customer() {
+        builder = new CustomerBuilder();
+    }
+
+    public void with_age(int age) {
+        builder.withAge(age);
+    }
+
+    @AfterStage
+    void buildCustomer() {
+        customer = builder.build();
+    }
+}
+          </code></pre>
+          </section>
+
+     <section>
+       <h2>Tags</h2>
+<pre><code>@Test @FeatureEmail
+void the_customer_gets_an_email_when_ordering_a_book() {
+   ...
+}</code></pre>
+<div class="fragment">
+<h3>With Values</h3>
+<pre><code>@Test @Story( "ABC-123" )
+void the_customer_gets_an_email_when_ordering_a_book() { ... }</code></pre>
+</div>
+
+     </section>
+
+     <section>
+     <h2>@NotImplementedYet</h2>
+     <ul>
+       <li>Marks whole tests or single step methods as not implemented yet</li>
+       <li>Tests will be ignored and specially marked in the report</li>
+     </ul>
+     <a target="_blank" href="examplereport/index.html#/pending">HTML Report</a>
+     </section>
+
+     <section>
+       <h2>@Hidden</h2>
+       <ul>
+         <li>Marks methods to <b>not</b> appear in the report</li>
+         <li>Useful for technically necessary methods that should not appear in the report</li>
+       </ul>
+       <pre><code data-trim>
+@Hidden
+public SELF doSomethingTechnical() { ... }</code></pre>
+     </section>
+
+     <section>
+     <h2>Extended Descriptions</h2>
+     <pre><code>@ExtendedDescription("The Hitchhiker's Guide to the Galaxy, "
+                   + "by default the book is not on stock" )
+public SELF a_book() { ... }</code></pre>
+<h3>HTML Report</h3>
+     <div style="text-align:center;">
+     <img class="plain" src="img/tooltip.png" />
+     </div>
+     <a target="_blank" href="examplereport/index.html#/scenario/com.tngtech.jgiven.example.bookstore.OrderTest/customers_can_order_books">HTML Report</a>
+     </section>
+
+     <section>
+     <h2>Attachments</h2>
+     <pre><code>public class Html5ReportStage {
+    @ExpectedScenarioState
+    protected CurrentStep currentStep; // provided by JGiven
+
+    protected void takeScreenshot() {
+        String base64 = ( (TakesScreenshot) webDriver )
+            .getScreenshotAs( OutputType.BASE64 );
+        currentStep.addAttachment(
+            Attachment.fromBase64( base64, MediaType.PNG )
+                      .withTitle( "Screenshot" ) );
+    }
+}</code></pre>
+<h3>HTML Report</h3>
+     <div style="text-align:center;">
+     <img class="plain" src="img/attachment.png" />
+     </div>
+     <a href="http://jgiven.org/jgiven-report/html5/#/scenario/com.tngtech.jgiven.report.html5.Html5GeneratorTest/attachments_appear_in_the_HTML5_report">HTML Report</a>
+     </section>
+
+
+   </section>
+
+      <section>
+        <section>
+          <h1>Conclusion</h1>
+        </section>
+
+        <section>
+          <h2>Pros</h2>
+          <ul style="margin-top:0px; font-size:80%;" class="narrow">
+            <li class="fragment fade-in">Developer-friendly
+            <li class="fragment fade-in">High reuse due to modularity of scenarios
+            <li class="fragment fade-in">Plain Java, no additional programming language needed
+            <li class="fragment fade-in">Very easy to learn
+            <li class="fragment fade-in">Very easy to integrate into existing test infrastructure
+            <li class="fragment fade-in">Readable reports for non-developers
+          </ul>
+          <p>
+          <h3 class="fragment fade-in">BDD without the hassle!</h3>
+
+        </section>
+
+        <section>
+          <h2>Cons</h2>
+          <ul>
+            <li class="fragment fade-in">Non-Developers cannot directly write executable scenarios</li>
+            <ul class="fragment fade-in">
+              <li>But acceptance criteria can be easily translated into JGiven scenarios</li>
+              <li>Generated reports can be read by non-developers</li>
+            </ul>
+          </ul>
+        </section>
+      </section>
+
+
+   <section style="text-align:center" >
+     <h1>Thank You!</h1>
+     <h3>@JanSchfr</h3>
+     <a href="http://jgiven.org"><h3>jgiven.org</h3></a>
+     <a href="https://github.com/TNG/JGiven"><h3>github.com/TNG/JGiven</h3></a>
+<span  style="font-size:small" >
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png" /></a><span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">Slides</span> are licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.</span>
+
+   </section>
+   <section>
+     <section>
+     <h1>Backup</h1>
+     </section>
+
+     <section>
+       <h2>Why snake_case?</h2>
+       <ul>
+	 <li>Better readable
+	 <ul>
+	   <li class="fragment fade-in">thisCannotBeReadVeryEasilyBecauseItIsCamelCase</li>
+	   <li class="fragment fade-in">this_can_be_read_much_better_because_it_is_snake_case</li>
+	 </ul>
+	 <li class="fragment fade-in">Words can be written in their correct case
+	 <ul>
+	   <li>given().an_HTML_page()</li>
+	 </ul>
+	 <li class="fragment fade-in">Report generation works better with snake_case</li>
+       </ul>
+     </section>
+
+   </section>
+
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+				// Optional reveal.js plugins
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); },
+                       callback: function() {
+                          hljs.configure({ languages: ['java'] });
+                          hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>

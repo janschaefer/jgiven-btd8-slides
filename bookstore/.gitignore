@@ -1,0 +1,9 @@
+/out
+/build
+/jgiven-reports
+/.idea
+/.gradle
+.classpath
+.project
+.settings
+/gradle
